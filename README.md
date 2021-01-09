@@ -1,6 +1,8 @@
 Nginx
 =====
 
+![Test Ansible Role](https://github.com/rbrightling/ansible-nginx/workflows/Test%20Ansible%20Role/badge.svg?branch=main) [![Ansible Galaxy](http://img.shields.io/badge/galaxy-rbrightling.nginx-660198.svg?style=flat)](https://galaxy.ansible.com/rbrightling/nginx)
+
 Install and configure Nginx web server. Configures both the global nginx configuration and an optional default site.
 
 **NOTE**: Default site with ssl is provisioned for testing but should be provisioned seperately for production if used.
