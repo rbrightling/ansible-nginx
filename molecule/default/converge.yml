@@ -1,0 +1,9 @@
+---
+- name: Converge
+  hosts: all
+  vars:
+    nginx_ssl_dhparam_size: 1024
+  tasks:
+    - name: "Include nginx"
+      include_role:
+        name: "nginx"

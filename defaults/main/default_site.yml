@@ -1,0 +1,81 @@
+---
+
+# Default Webserver configuration.
+#
+nginx_default_server_http_state: redirect
+nginx_default_server_https_state: enabled
+# enabled: Enable the config block
+# redirect: redirect to `nginx_default_server_redirect` with 301 code
+# reject: return a 444 code
+# disabled: remove the config block
+
+# URL to rediect to, defaults to https of request
+nginx_default_server_redirect: "https://$host$request_uri"
+
+# Whitelist's IP's for rediect/reject codes, useful for monitoring.
+nginx_default_server_remote_addr_whitelist: 127.0.0.1
+
+# Allowed request methods
+nginx_default_server_allow_request_methods:
+  - GET
+  - HEAD
+  - POST
+
+# HTTP port and listen
+nginx_default_server_http_port: 80
+nginx_default_server_http_listen:
+  - ["{{ nginx_default_server_http_port }}", default_server]
+  - ["[::]:{{ nginx_default_server_http_port }}", default_server]
+
+# HTTPS port and listen
+nginx_default_server_https_port: 443
+nginx_default_server_https_listen:
+  - ["{{ nginx_default_server_https_port }}", ssl, http2, default_server]
+  - ["[::]:{{ nginx_default_server_https_port }}", ssl, http2, default_server]
+
+# Directory to include for default site.
+nginx_default_server_include: "/etc/nginx/default.d/*"
+
+# root directory to be served from
+nginx_default_server_root: "/srv/www/default"
+
+# server_name for the default server
+nginx_default_server_server_name: "_"
+# Can take a single server name or list
+
+# Default files for nginx to search to serve if not directly specified.
+nginx_default_server_index: [index.html]
+
+# Config location block for the directory sepcified with `nginx_default_server_location_root`.
+nginx_default_server_location_root:
+  - allow: "{{ nginx_default_server_allow }}"
+  - deny: "{{ nginx_default_server_deny }}"
+  - try_files: ["$uri", "$uri/", "=404" ]
+nginx_default_server_allow: all
+nginx_default_server_deny: null
+
+# Addditional location blocks to be configured.
+nginx_default_server_locations:
+  - '~ ^/(images|javascript|js|css|flash|media|static)/':
+    - expires: 7d
+    - access_log: false
+# Takes a list of values to create the location blocks and options. A dict of values are also converted (See add_header below)
+# Example:
+#  - '~ ^/path/':
+#    - add_header:
+#        x_frame_option: "ALLOW"
+#        x_content_type_options: "nosniff"
+# NOTE: if nginx add_header is set on a location it doesn't inherit previous  add_header declarations.
+
+
+# Specify a SSL certfifcate/key to use for the default server
+nginx_default_server_ssl_certificate: "{{ nginx_ssl_certificate }}"
+nginx_default_server_ssl_certificate_key: "{{ nginx_ssl_certificate_key }}"
+
+# Default server add_header options
+nginx_default_server_add_header_x_frame_options: "DENY"
+nginx_default_server_add_header_x_content_type_options: "nosniff"
+nginx_default_server_add_header_x_xss_protection: "1; mode=block"
+nginx_default_server_add_header_content_security_policy: "default-src 'self'"
+nginx_default_server_add_header_cache_control: "public"
+nginx_default_server_add_header_strict_transport_security: ["max-age=63072000", always] # HTTPS only

@@ -1,0 +1,26 @@
+---
+# vars for debian
+
+nginx__packages:
+  - nginx
+  - python3-openssl
+
+nginx__user: www-data
+
+nginx__conf_path: /etc/nginx/nginx.conf
+
+nginx__pid_file_path: "/run/nginx.pid"
+
+nginx__include_modules: "/etc/nginx/modules-enabled/*.conf"
+
+nginx__default_site_path: /etc/nginx/sites-available/default
+
+nginx__include:
+  - /etc/nginx/conf.d/*.conf
+  - /etc/nginx/sites-enabled/*
+
+nginx__directory_structure:
+  - /etc/nginx/sites-available
+  - /etc/nginx/sites-enabled
+  - /etc/nginx/default.d
+  - /etc/nginx/conf.d

@@ -1,0 +1,28 @@
+---
+# tasks file for nginx defsult site deploy
+
+- name: create directory for default site
+  file:
+    path: "{{ nginx_default_server_root }}"
+    owner: root
+    group: root
+    mode: "0755"
+    state: directory
+  become: true
+  tags:
+    - setup
+
+- name: copy default site contents
+  copy:
+    src: "{{ lookup('first_found', params) }}/"
+    dest: "{{ nginx_default_server_root }}"
+    owner: root
+    group: root
+    mode: "0644"
+  vars:
+    params:
+      - "{{ playbook_dir }}/files/nginx/default_site"
+      - "{{ role_path }}/files/default_site"
+  become: true
+  tags:
+    - setup

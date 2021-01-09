@@ -1,0 +1,28 @@
+---
+# tasks file for nginx default site config
+
+- name: template default site config file
+  template:
+    dest: "{{ nginx__default_site_path }}"
+    src: "default_site.j2"
+    mode: '0644'
+    owner: root
+    group: root
+  become: true
+  notify:
+    - restart nginx service
+  tags:
+    - configure
+
+- name: enable the default site
+  file:
+    src: "{{ nginx__default_site_path }}"
+    dest: /etc/nginx/sites-enabled/default
+    owner: root
+    group: root
+    state: link
+  become: true
+  notify:
+    - restart nginx service
+  tags:
+    - configure

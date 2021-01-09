@@ -1,0 +1,56 @@
+---
+# tasks for nginx ssl default certificate generation
+
+- name: Create default SSL directory
+  file:
+    path: /etc/nginx/ssl/default
+    owner: root
+    group: "{{ nginx__user }}"
+    mode: "0750"
+    state: directory
+  become: true
+  tags:
+    - setup
+
+- name: Generate an OpenSSL private key
+  openssl_privatekey:
+    path: "/etc/nginx/ssl/default/key.pem"
+    size: 2048
+    type: "ECC"
+    curve: "secp256r1"
+    owner: root
+    group: "{{ nginx__user }}"
+    mode: "0640"
+  become: true
+  ignore_errors: "{{ ansible_check_mode }}"
+  tags:
+    - setup
+
+- name: Generate an OpenSSL Sign Request
+  openssl_csr:
+    path: "/etc/nginx/ssl/default/default.csr"
+    privatekey_path: "/etc/nginx/ssl/default/key.pem"
+    common_name: "default.site"
+    owner: root
+    group: "{{ nginx__user }}"
+    mode: "0640"
+  become: true
+  ignore_errors: "{{ ansible_check_mode }}"
+  tags:
+    - setup
+
+- name: Create SignSigned OpenSSL Certificate
+  openssl_certificate:
+    path: "/etc/nginx/ssl/default/fullchain.pem"
+    privatekey_path: "/etc/nginx/ssl/default/key.pem"
+    csr_path: "/etc/nginx/ssl/default/default.csr"
+    provider: selfsigned
+    owner: root
+    group: "{{ nginx__user }}"
+    mode: "0640"
+  become: true
+  ignore_errors: "{{ ansible_check_mode }}"
+  notify:
+    - restart nginx service
+  tags:
+    - setup

@@ -1,0 +1,36 @@
+{% macro option_format(option, value) -%}
+{% if value is not none %}
+{%   if option == "ssl_ciphers" %}
+{{ option }} {{ value | nginx_option(join=":", string=True) }};
+{%   elif value is mapping %}
+{%     if 'parameter' in value.keys() %}
+{{ option }} {{ value | nginx_option }};
+{%     else %}
+{%     for name, v in value.items() | list %}
+{%         if v is not none %}
+{{ option }} {{ name }} {{ v | nginx_option }};
+{%         endif %}
+{%     endfor %}
+{%     endif %}
+{%   else %}
+{% if value is iterable and value | nginx_is_list_of_lists %}
+{% for v in value %}
+{{ option }} {{ v | nginx_option }};
+{% endfor %}
+{% else %}
+{{ option }} {{ value | nginx_option }};
+{% endif %}
+{%   endif %}
+{% endif %}
+{% endmacro %}
+{% macro location_format(location, values) %}
+location {{ location }} {
+{% filter indent(4, indentfirst=True) %}
+{% for item in values %}
+{% for name, value in item.items() | list %}
+{{ option_format(name, value) -}}
+{% endfor %}
+{% endfor %}
+{% endfilter %}
+}
+{% endmacro %}

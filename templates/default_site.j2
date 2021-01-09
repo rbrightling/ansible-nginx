@@ -1,0 +1,91 @@
+{{ ansible_managed | comment }}
+{% import "macros.j2" as nginx_macro %}
+# Default server configuration
+#
+{% if nginx_default_server_http_state != "disabled" %}
+server {
+{% filter indent(4, indentfirst=True)%}
+{{ nginx_macro.option_format('listen', nginx_default_server_http_listen) -}}
+{{ nginx_macro.option_format('server_name', nginx_default_server_server_name) -}}
+{{ nginx_macro.option_format('add_header', {'X-Frame-Options': nginx_default_server_add_header_x_frame_options}) -}}
+{{ nginx_macro.option_format('add_header', {'X-Content-Type-Options': nginx_default_server_add_header_x_content_type_options}) -}}
+{{ nginx_macro.option_format('add_header', {'X-XSS-Protection': nginx_default_server_add_header_x_xss_protection}) -}}
+{{ nginx_macro.option_format('add_header', {'Content-Security-Policy': nginx_default_server_add_header_content_security_policy}) -}}
+{{ nginx_macro.option_format('add_header', {'Cache-Control': nginx_default_server_add_header_cache_control}) -}}
+{{ nginx_macro.option_format('root', nginx_default_server_root) -}}
+{{ nginx_macro.option_format('index', nginx_default_server_index) -}}
+{% endfilter %}
+{% if nginx_default_server_allow_request_methods %}
+    if ($request_method !~ ^({{ "|".join(nginx_default_server_allow_request_methods) }})$ )
+    {
+        return 405;
+    }
+{% endif %}
+{% if nginx_default_server_http_state  == "reject" %}
+    if ($remote_addr != {{ nginx_default_server_remote_addr_whitelist }}) {
+        return 444;
+    }
+{% elif nginx_default_server_http_state  == "redirect" %}
+    if ($remote_addr != {{ nginx_default_server_remote_addr_whitelist }}) {
+        return 301 {{ nginx_default_server_redirect }};
+    }
+{% else %}
+{% filter indent(4, indentfirst=True)%}
+{{ nginx_macro.option_format('include', nginx_default_server_include) }}
+{% for location in nginx_default_server_locations %}
+{% for name, options in location.items() | list %}
+{{ nginx_macro.location_format(name, options) }}
+{% endfor %}
+{% endfor %}
+{{ nginx_macro.location_format("/", nginx_default_server_location_root) }}
+{% endfilter %}
+
+{% endif %}
+}
+{% endif %}
+
+{% if nginx_default_server_https_state != 'disabled' %}
+server {
+{% filter indent(4, indentfirst=True)%}
+{{ nginx_macro.option_format('listen', nginx_default_server_https_listen) -}}
+{{ nginx_macro.option_format('server_name', nginx_default_server_server_name) -}}
+
+{{ nginx_macro.option_format('add_header', {'X-Frame-Options': nginx_default_server_add_header_x_frame_options}) -}}
+{{ nginx_macro.option_format('add_header', {'X-Content-Type-Options': nginx_default_server_add_header_x_content_type_options}) -}}
+{{ nginx_macro.option_format('add_header', {'X-XSS-Protection': nginx_default_server_add_header_x_xss_protection}) -}}
+{{ nginx_macro.option_format('add_header', {'Content-Security-Policy': nginx_default_server_add_header_content_security_policy}) -}}
+{{ nginx_macro.option_format('add_header', {'Cache-Control': nginx_default_server_add_header_cache_control}) -}}
+{{ nginx_macro.option_format('add_header', {'Strict-Transport-Security': nginx_default_server_add_header_strict_transport_security}) -}}
+{{ "" }}
+{{ nginx_macro.option_format('ssl_certificate', nginx_default_server_ssl_certificate) -}}
+{{ nginx_macro.option_format('ssl_certificate_key', nginx_default_server_ssl_certificate_key) -}}
+{{ nginx_macro.option_format('root', nginx_default_server_root) -}}
+{{ nginx_macro.option_format('index', nginx_default_server_index) -}}
+{% if nginx_default_server_allow_request_methods %}
+    if ($request_method !~ ^({{ "|".join(nginx_default_server_allow_request_methods) }})$ )
+    {
+        return 405;
+    }
+{% endif %}
+{% endfilter %}
+{% if nginx_default_server_https_state  == "reject" %}
+    if ($remote_addr != {{ nginx_default_server_remote_addr_whitelist }}) {
+        return 444;
+    }
+{% elif nginx_default_server_https_state  == "redirect" %}
+    if ($remote_addr != {{ nginx_default_server_remote_addr_whitelist }}) {
+        return 301 {{ nginx_default_server_redirect }};
+    }
+{% else %}
+{% filter indent(4, indentfirst=True)%}
+{{ nginx_macro.option_format('include', nginx_default_server_include) }}
+{% for location in nginx_default_server_locations %}
+{% for name, options in location.items() | list %}
+{{ nginx_macro.location_format(name, options) }}
+{% endfor %}
+{% endfor %}
+{{ nginx_macro.location_format("/", nginx_default_server_location_root) }}
+{% endfilter %}
+{% endif %}
+}
+{% endif %}

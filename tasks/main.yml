@@ -1,0 +1,85 @@
+---
+# tasks file for nginx
+
+- name: include distro variables
+  include_vars: "{{ lookup('first_found', params) }}"
+  vars:
+    params:
+      files:
+        - "{{ ansible_os_family | lower }}.yml"
+      paths:
+        - '{{ playbook_dir }}/vars'
+        - '{{ role_path }}/vars'
+  tags:
+    - always
+
+- name: install nginx packages
+  package:
+    name: "{{ nginx__packages }}"
+    state: present
+  become: true
+  tags:
+    - install
+
+- name: create nginx directory structure
+  file:
+    path: "{{ item }}"
+    state: directory
+    owner: root
+    group: root
+    mode: "0755"
+  become: true
+  with_items: "{{ nginx__directory_structure }}"
+  tags:
+    - setup
+
+- name: create dhparam file
+  openssl_dhparam:
+    path: "{{ nginx_ssl_dhparam }}"
+    size: "{{ nginx_ssl_dhparam_size }}"
+  when: "not nginx_ssl_dhparam is sameas False"
+  become: true
+  notify:
+    - restart nginx service
+  tags:
+    - setup
+
+- name: Include default self-sign SSL certificate tasks
+  include_tasks: "{{ role_path }}/tasks/selfsign_certificate.yml"
+  tags:
+    - setup
+
+- name: include default site config tasks
+  include_tasks: "{{ role_path }}/tasks/default_site_config.yml"
+  when: nginx_manage_default_site_config
+  tags:
+    - configure
+
+- name: incude default site deploy tasks
+  include_tasks: "{{ role_path }}/tasks/default_site_deploy.yml"
+  when: nginx_manage_default_site_deploy
+  tags:
+    - setup
+
+- name: template nginx main config file
+  template:
+    dest: "{{ nginx__conf_path }}"
+    src: "nginx.conf.j2"
+    mode: '0644'
+    owner: root
+    group: root
+    validate: "/usr/sbin/nginx -t -c %s"
+  become: true
+  notify:
+    - restart nginx service
+  tags:
+    - configure
+
+- name: start and enable nginx service
+  service:
+    name: nginx
+    state: started
+    enabled: true
+  become: true
+  tags:
+    - service
