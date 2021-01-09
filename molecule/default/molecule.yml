@@ -12,6 +12,9 @@ platforms:
   - name: instance
     image: geerlingguy/docker-${MOLECULE_DISTRO:-debian10}-ansible:latest
     command: ""
+    tmpfs:
+      - /run
+      - /tmp
     volumes:
       - /sys/fs/cgroup:/sys/fs/cgroup:ro
     privileged: true
