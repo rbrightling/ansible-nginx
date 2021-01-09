@@ -2,7 +2,7 @@
 dependency:
   name: galaxy
 driver:
-  name: ${MOLE_DRVIER:-podman}
+  name: ${MOLE_DRIVER:-podman}
 lint: |
   set -e
   yamllint .
