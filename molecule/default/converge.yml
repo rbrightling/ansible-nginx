@@ -6,4 +6,4 @@
   tasks:
     - name: "Include nginx"
       include_role:
-        name: "nginx"
+        name: "{{ lookup('env', 'MOLECULE_PROJECT_DIRECTORY') | basename }}"
